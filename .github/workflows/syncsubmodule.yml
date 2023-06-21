@@ -17,7 +17,7 @@ jobs:
       run: |
         cd FFmpeg
         currenttag=$(git describe --tags)
-        latesttag=$(git tag | grep ^n[0-9]\d*\.[0-9]\d*\(.[0-9]\d*)$ | tail -n1)
+        latesttag=$(git tag | grep ^n[0-9]\d*\.[0-9]\d*(\.[0-9]\d*)?$ | tail -n1)
         if [[ "$currenttag" != "$latesttag" ]]; then
           git checkout "$latesttag"
           cd ../
