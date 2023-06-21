@@ -4,69 +4,59 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 jobs:
-  build:
+  build-windows-x86_64:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./FFmpeg
     steps:
-    - uses: actions/checkout@v3
+    - name: Clone FFmpeg submodule
+      uses: actions/checkout@v3
       with:
         submodules: true
-    - name: install packages
+    - name: Install compiler and FFmpeg dependencies
       run: | 
         sudo apt update
         sudo apt install cmake libass-dev libgnutls28-dev libmp3lame-dev libsdl2-dev libva-dev libvdpau-dev libvorbis-dev libxcb-xfixes0-dev meson ninja-build yasm mingw-w64 mingw-w64-tools libunistring-dev
-    - name: make build directory
+    - name: Create directories
       run: |
         mkdir build
         mkdir openssl
-    - name: download OpenSSL build
+    - name: Download prebuilt OpenSSL binaries
       uses: robinraju/release-downloader@v1.8
       with:
         repository: ${{ github.repository_owner }}/openssl-build
         latest: true
-        fileName: "openssl-win64-dev.zip"
+        fileName: "openssl-**-windows-x86_64-lib.zip"
         out-file-path: FFmpeg
         extract: true
-    - name: configure directories
-      run: |
-        mv build64/lib64 openssl/lib
-        mv build64/include openssl/include
-    - name: list files (debug)
-      run: ls build
-    - name: configure
-      run: ./configure --arch=x86_64 --target-os=mingw64 --cross-prefix=x86_64-w64-mingw32- --enable-cross-compile --prefix=build --disable-doc --enable-openssl --extra-cflags="-Iopenssl/include" --extra-ldflags="-Lopenssl/lib"
-    - name: make
+    - name: Configure source
+      run: ./configure --arch=x86_64 --target-os=mingw64 --cross-prefix=x86_64-w64-mingw32- --enable-cross-compile --prefix=build --disable-doc --enable-openssl --extra-cflags="-Iopenssl-windows-x86_64/include" --extra-ldflags="-openssl-windows-x86_64/lib64"
+    - name: Compile source
       run: make
-    - name: make install
+    - name: Copy FFmpeg build
       run: make install
-    - name: upload build
+    - name: Upload build as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: build
+        name: ffmpeg-windows-x86_64
         path: FFmpeg/build
   release:
     permissions:
       contents: write
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [build-windows-x86_64]
     steps:
-    - uses: actions/checkout@v3
-    - name: Download all workflow run artifacts
+    - name: Clone build repo
+      uses: actions/checkout@v3
+    - name: Get latest tag
+      id: previoustag
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      with:
+        fallback: n0.0
+    - name: Download all builds
       uses: actions/download-artifact@v3
-    - name: Bump version and push tag
-      id: tag_version
-      uses: mathieudutour/github-tag-action@v6.1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Create a GitHub release
-      uses: ncipollo/release-action@v1
-      with:
-        tag: ${{ steps.tag_version.outputs.new_tag }}
-        name: Release ${{ steps.tag_version.outputs.new_tag }}
-        body: ${{ steps.tag_version.outputs.changelog }}
-    - name: Setup .NET Core
+    - name: Setup NuGet package URL
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 3.1.301
@@ -74,21 +64,28 @@ jobs:
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       env:
         NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
-    - name: make nuget package
-      run: dotnet pack -c release -o nuget /p:Version=${{ steps.tag_version.outputs.new_tag }}
-    - name: push nuget package
-      run: dotnet nuget push "nuget/ffmpeg.**.nupkg" --no-symbols --skip-duplicate
+    - name: Parse FFmpeg version
+      uses: mad9000/actions-find-and-replace-string@2
+      id: parsetag
+      with:
+        source: ${{ steps.previoustag.outputs.tag }}
+        find: 'n'        
+        replace: ''
+    - name: Create NuGet package
+      run: dotnet pack -c release -o nuget /p:Version=${{ steps.parsetag.outputs.value }}
+    - name: Push nuget package
+      run: dotnet nuget push "nuget/ffmpeg.${{ steps.parsetag.outputs.value }}.nupkg" --no-symbols --skip-duplicate
       env:
         NUGET_AUTH_TOKEN: ${{ github.token }}
-    - name: zip ffmpeg
+    - name: Package FFmpeg as Zip
       run: |
-        zip -r -j ffmpeg-win64.zip build/bin
-        zip -r ffmpeg-win64-dev.zip build
-    - name: Release
+        zip -r -j ffmpeg-${{ steps.parsetag.outputs.value }}-windows-x86_64.zip ffmpeg-windows-x86_64/bin
+        zip -r ffmpeg-${{ steps.parsetag.outputs.value }}-windows-x86_64-lib.zip ffmpeg-windows-x86_64
+    - name: Create GitHub release with packages
       uses: softprops/action-gh-release@v1
       with:
-        tag: ${{ steps.tag_version.outputs.new_tag }}
+        tag: ${{ steps.previoustag.outputs.tag }}
         files: |
-          nuget/ffmpeg.**.nupkg
-          ffmpeg-win64.zip
-          ffmpeg-win64-dev.zip
+          nuget/ffmpeg.${{ steps.parsetag.outputs.value }}.nupkg
+          ffmpeg-${{ steps.parsetag.outputs.value }}-windows-x86_64.zip
+          ffmpeg-${{ steps.parsetag.outputs.value }}-windows-x86_64-lib.zip
