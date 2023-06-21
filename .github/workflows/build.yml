@@ -21,14 +21,13 @@ jobs:
     - name: Create directories
       run: |
         mkdir build
-        mkdir openssl
     - name: Download prebuilt OpenSSL binaries
       uses: robinraju/release-downloader@v1.8
       with:
         repository: ${{ github.repository_owner }}/openssl-build
         latest: true
         fileName: "openssl-**-windows-x86_64-lib.zip"
-        out-file-path: FFmpeg
+        out-file-path: .
         extract: true
     - name: Configure source
       run: ./configure --arch=x86_64 --target-os=mingw64 --cross-prefix=x86_64-w64-mingw32- --enable-cross-compile --prefix=build --disable-doc --enable-openssl --extra-cflags="-Iopenssl-windows-x86_64/include" --extra-ldflags="-openssl-windows-x86_64/lib64"
