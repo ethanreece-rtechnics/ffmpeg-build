@@ -28,7 +28,7 @@ jobs:
         repository: ${{ github.repository_owner }}/openssl-build
         latest: true
         fileName: "openssl-**-windows-x86_64-lib.zip"
-        out-file-path: .
+        out-file-path: FFmpeg
         extract: true
     - name: Configure source
       run: |
