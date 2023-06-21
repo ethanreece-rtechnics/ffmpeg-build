@@ -24,7 +24,7 @@ jobs:
     - name: download OpenSSL build
       uses: robinraju/release-downloader@v1.8
       with:
-        repository: ${{ github.repository_owner }}/openssl
+        repository: ${{ github.repository_owner }}/openssl-build
         latest: true
         fileName: "openssl-win64-dev.zip"
         out-file-path: FFmpeg
