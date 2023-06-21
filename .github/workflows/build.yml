@@ -19,9 +19,6 @@ jobs:
       run: | 
         sudo apt update
         sudo apt install cmake libass-dev libgnutls28-dev libmp3lame-dev libsdl2-dev libva-dev libvdpau-dev libvorbis-dev libxcb-xfixes0-dev meson ninja-build yasm mingw-w64 mingw-w64-tools libunistring-dev
-    - name: Create directories
-      run: |
-        mkdir build
     - name: Download prebuilt OpenSSL binaries
       uses: robinraju/release-downloader@v1.8
       with:
@@ -32,9 +29,7 @@ jobs:
         extract: true
     - name: Configure source
       run: |
-        ls .
-        echo "===="
-        ls ../
+        mkdir build
         ./configure --arch=x86_64 --target-os=mingw64 --cross-prefix=x86_64-w64-mingw32- --enable-cross-compile --prefix=build --disable-doc --enable-openssl --extra-cflags="-Iopenssl-windows-x86_64/include" --extra-ldflags="-Lopenssl-windows-x86_64/lib64"
     - name: Compile source
       run: make
