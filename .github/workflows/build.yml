@@ -64,7 +64,9 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
     - name: Create NuGet package
-      run: dotnet pack -c release -o nuget /p:Version=${{ steps.version.outputs.current }}
+      run: |
+        dotnet build
+        dotnet pack -c release -o nuget /p:Version=${{ steps.version.outputs.current }}
     - name: Push nuget package
       run: dotnet nuget push "nuget/ffmpeg.${{ steps.version.outputs.current }}.nupkg" --no-symbols --skip-duplicate
       env:
