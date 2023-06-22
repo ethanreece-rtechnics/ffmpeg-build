@@ -7,6 +7,7 @@ on:
 jobs:
   build-windows-x86_64:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./FFmpeg
@@ -45,6 +46,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     needs: [build-windows-x86_64]
+    timeout-minutes: 30
     steps:
     - name: Clone build repo
       uses: actions/checkout@v3
