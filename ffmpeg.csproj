@@ -4,7 +4,7 @@
     <Version>1.0.0</Version>
     <Authors>Ethan Reece</Authors>
     <Company>R-Technics</Company>
-    <RepositoryUrl>https://github.com/ethanreece-rtechnics/FFmpeg/</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ethanreece-rtechnics/ffmpeg-build/</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
