@@ -57,17 +57,16 @@ jobs:
       run: echo "current=$(git describe --tags | cut -c 2-)" >> "$GITHUB_OUTPUT"
     - name: Download all builds
       uses: actions/download-artifact@v3
-    - name: Setup NuGet push URL
+    - name: Setup dotnet
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 3.1.x
-        source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - name: Create NuGet package
       run: dotnet build -c release -o nuget /p:Version=${{ steps.version.outputs.current }}
     - name: Push nuget package
-      run: dotnet nuget push nuget/ffmpeg.*.nupkg --no-symbols --skip-duplicate
+      run: dotnet nuget push nuget/ffmpeg.*.nupkg --no-symbols --skip-duplicate -k $NUGET_AUTH_TOKEN -s https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Package FFmpeg as Zip
       run: |
         zip -r -j ffmpeg-${{ steps.version.outputs.current }}-windows-x86_64.zip ffmpeg-windows-x86_64/bin
