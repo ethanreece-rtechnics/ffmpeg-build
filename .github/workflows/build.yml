@@ -60,19 +60,14 @@ jobs:
     - name: Setup NuGet package URL
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 3.1.301
-        # Authenticates packages to push to GPR
+        dotnet-version: 3.1.x
         source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       env:
-        NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - name: Create NuGet package
       run: dotnet build -c release -o nuget /p:Version=${{ steps.version.outputs.current }}
     - name: Push nuget package
-      run: |
-        ls -R
-        dotnet nuget push nuget/ffmpeg.*.nupkg --no-symbols --skip-duplicate
-      env:
-        NUGET_AUTH_TOKEN: ${{ github.token }}
+      run: dotnet nuget push nuget/ffmpeg.*.nupkg --no-symbols --skip-duplicate
     - name: Package FFmpeg as Zip
       run: |
         zip -r -j ffmpeg-${{ steps.version.outputs.current }}-windows-x86_64.zip ffmpeg-windows-x86_64/bin
