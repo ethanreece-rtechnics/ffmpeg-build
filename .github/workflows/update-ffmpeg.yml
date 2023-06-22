@@ -1,4 +1,4 @@
-name: Update submodule
+name: Update FFMPEG Submodule
 on:
   schedule: [cron: 0 10 * * *]
   workflow_dispatch:
