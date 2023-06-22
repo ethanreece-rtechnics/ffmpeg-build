@@ -57,7 +57,7 @@ jobs:
       run: echo "current=$(git describe --tags | cut -c 2-)" >> "$GITHUB_OUTPUT"
     - name: Download all builds
       uses: actions/download-artifact@v3
-    - name: Setup NuGet package URL
+    - name: Setup NuGet push URL
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 3.1.x
