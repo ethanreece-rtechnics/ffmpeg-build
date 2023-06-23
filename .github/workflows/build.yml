@@ -65,7 +65,7 @@ jobs:
       run: dotnet build --configuration release -o nuget /p:Version=${{ steps.version.outputs.current }}
     - name: Set push URL to GitHub packages
       run: dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-    - name: Push nuget package
+    - name: Push NuGet package
       run: dotnet nuget push nuget/ffmpeg.*.nupkg --no-symbols --skip-duplicate --api-key $NUGET_AUTH_TOKEN --source "github"
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
