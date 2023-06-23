@@ -43,6 +43,7 @@ jobs:
         path: FFmpeg/build
   release:
     permissions:
+      contents: write
       packages: write
     runs-on: ubuntu-latest
     needs: [build-windows-x86_64]
